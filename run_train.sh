@@ -2,6 +2,6 @@
 
 cd scripts
 
-python train.py
+python3 train.py
 
 cd -
