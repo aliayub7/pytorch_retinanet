@@ -13,3 +13,5 @@ For example, if your dataset name is `can_data`, then all the images should be i
 
 ## Train the model
 Change the `config/confg.py` accordingly.
+
+Run `run_train.sh`.
