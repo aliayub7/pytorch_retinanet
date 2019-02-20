@@ -5,12 +5,7 @@ import torch.nn as nn
 
 from .fpn import FPN50, FPN101
 
-import os
-config_folder = os.path.join(os.path.abspath(__file__), '../../')
-print(config_folder)
-sys.path.append(config_folder)
-from config import config
-#from pytorch_retinanet.config import config # Alternatively
+from pytorch_retinanet.config import config # Alternatively
 
 
 class RetinaNet(nn.Module):
