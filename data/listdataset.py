@@ -3,11 +3,12 @@ from __future__ import division
 
 import sys
 import os
+import random
 
 import torch
 import torch.utils.data as data
 
-from PIL import Image
+from PIL import Image, ImageEnhance
 
 sys.path.append('../')
 from utils.encoder import DataEncoder
@@ -81,6 +82,11 @@ class ListDataset(data.Dataset):
             img, boxes = random_flip(img, boxes)
             img, boxes = random_crop(img, boxes)
             img, boxes = resize(img, boxes, (size, size))
+            if random.random() > 0.5:
+                img = ImageEnhance.Color(img).enhance(random.uniform(0, 1))
+                img = ImageEnhance.Brightness(img).enhance(random.uniform(0.5, 2))
+                img = ImageEnhance.Contrast(img).enhance(random.uniform(0.5, 1.5))
+                img = ImageEnhance.Sharpness(img).enhance(random.uniform(0.5, 1.5))
         else:
             img, boxes = resize(img, boxes, (size, size))
             # img, boxes = center_crop(img, boxes, (size, size))
