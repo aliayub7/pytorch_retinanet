@@ -72,8 +72,8 @@ def generate_listdata(prefix):
             for bidx, bbox in enumerate(bbox_list):
                 xmin, ymin, xmax, ymax = bbox
 
-                this_ann_line += ' {} {} {} {} {}'.format(
-                    xmin, ymin, xmax, ymax, label_dict[obj_name])
+                this_ann_line += ' {} {} {} {} {} {}'.format(
+                    xmin, ymin, xmax, ymax, label_dict[obj_name], bidx)
                 num_boxes += 1
 
         if num_boxes > 0:
