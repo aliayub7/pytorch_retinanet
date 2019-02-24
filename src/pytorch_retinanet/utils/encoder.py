@@ -5,7 +5,7 @@ from __future__ import division
 import math
 import torch
 
-from .pt_utils import meshgrid, box_iou, box_nms, change_box_order
+from pytorch_retinanet.utils.pt_utils import meshgrid, box_iou, box_nms, change_box_order
 
 
 class DataEncoder:

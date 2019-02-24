@@ -3,9 +3,8 @@ import sys
 import torch
 import torch.nn as nn
 
-from .fpn import FPN50, FPN101
-
-from ..config import config
+from pytorch_retinanet.model.fpn import FPN50, FPN101
+from pytorch_retinanet.config import config
 
 
 class RetinaNet(nn.Module):

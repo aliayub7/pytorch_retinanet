@@ -7,9 +7,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-sys.path.append('../')
-from utils.pt_utils import one_hot_embedding
-from config import config
+from pytorch_retinanet.utils.pt_utils import one_hot_embedding
+from pytorch_retinanet.config import config
 
 
 class FocalLoss(nn.Module):

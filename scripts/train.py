@@ -16,12 +16,11 @@ import torch.backends.cudnn as cudnn
 import torchvision
 import torchvision.transforms as transforms
 
-sys.path.append('../')
-from loss.focal_loss import FocalLoss
-from model.retinanet import RetinaNet
-from data.listdataset import ListDataset
-from scripts.init_retinanet import import_pretrained_resnet
-from config import config
+from pytorch_retinanet.loss.focal_loss import FocalLoss
+from pytorch_retinanet.model.retinanet import RetinaNet
+from pytorch_retinanet.model.retinanet_dataset import ListDataset
+from pytorch_retinanet.model.init_retinanet import import_pretrained_resnet
+from pytorch_retinanet.config import config
 
 
 os.environ['CUDA_VISIBLE_DEVICES'] = config.gpu_id

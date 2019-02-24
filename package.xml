@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>pytorch_retinanet</name>
+  <version>0.1.0</version>
+  <description>RetinaNet: an object detection algorithm with Focal Loss</description>
+  <license>UNRELEASED</license>
+
+  <maintainer email="gilwoo@uw.edu">Gilwoo Lee</maintainer>
+  <author email="yskim041@gmail.com">Youngsun Kim</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>python</depend>
+
+  <exec_depend>torch</exec_depend>
+</package>

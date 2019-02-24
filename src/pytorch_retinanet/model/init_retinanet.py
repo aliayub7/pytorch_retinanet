@@ -8,10 +8,9 @@ import torch
 import torch.nn as nn
 import torchvision.models as models
 
-sys.path.append('../')
-from model.fpn import FPN50, FPN101
-from model.retinanet import RetinaNet
-from config import config
+from pytorch_retinanet.model.fpn import FPN50, FPN101
+from pytorch_retinanet.model.retinanet import RetinaNet
+from pytorch_retinanet.config import config
 
 
 def import_pretrained_resnet():

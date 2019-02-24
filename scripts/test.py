@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import sys
 import os
@@ -13,9 +13,8 @@ import torchvision.transforms as transforms
 
 from PIL import Image, ImageDraw, ImageFont
 
-sys.path.append('../')
-from model.retinanet import RetinaNet
-from utils.encoder import DataEncoder
+from pytorch_retinanet.model.retinanet import RetinaNet
+from pytorch_retinanet.utils.encoder import DataEncoder
 
 
 parser = argparse.ArgumentParser(description='Test SPNet')
