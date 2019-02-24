@@ -10,12 +10,11 @@ import torch.utils.data as data
 
 from PIL import Image, ImageEnhance
 
-sys.path.append('../')
-from utils.encoder import DataEncoder
-from utils.transform import resize, random_flip, random_crop, center_crop
-from utils.utils import load_label_map
-from utils.pt_utils import one_hot_embedding
-from config import config
+from pytorch_retinanet.utils.encoder import DataEncoder
+from pytorch_retinanet.utils.transform import resize, random_flip, random_crop, center_crop
+from pytorch_retinanet.utils.utils import load_label_map
+from pytorch_retinanet.utils.pt_utils import one_hot_embedding
+from pytorch_retinanet.config import config
 
 
 class ListDataset(data.Dataset):
