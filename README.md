@@ -5,10 +5,14 @@ Reference:
 [1] [Focal Loss for Dense Object Detection](https://arxiv.org/abs/1708.02002)
 
 
-## Setup a catkin workspace and clone this repository
+## Installation
 ```
-cd CATKIN_WS/src
+cd YOUR_CATKIN_WS/src
 git clone https://github.com/personalrobotics/pytorch_retinanet.git
+cd ./pytorch_retinanet
+./load_checkpoint.sh
+catkin build pytorch_retinanet
+source $(catkin locate)/devel/setup.bash
 ```
 
 ## Preparing a dataset
