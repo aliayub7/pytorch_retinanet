@@ -4,13 +4,3 @@ item {
   name: 'can'
 }
 
-item {
-  id: 2
-  name: 'water_bottle'
-}
-
-item {
-  id: 3
-  name: 'person'
-}
-
