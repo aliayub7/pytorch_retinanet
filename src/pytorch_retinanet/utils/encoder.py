@@ -91,7 +91,7 @@ class DataEncoder:
         loc_xy = (boxes[:, :2] - anchor_boxes[:, :2]) / anchor_boxes[:, 2:]
         loc_wh = torch.log(boxes[:, 2:] / anchor_boxes[:, 2:])
         loc_targets = torch.cat([loc_xy, loc_wh], 1)
-        cls_targets = 1 + labels[max_ids]
+        cls_targets = labels[max_ids]
 
         cls_targets[max_ious < 0.5] = 0
         # ignore ious between [0.4,0.5]

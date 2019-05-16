@@ -62,6 +62,9 @@ class ListDataset(data.Dataset):
                 cls = int(splited[5 + isize * bidx])
                 box.append([xmin, ymin, xmax, ymax])
                 label.append(cls)
+                if cls != 1:
+                    print("Uh Oh! CLS: " + str(cls))
+                    print("File: " + this_img_filename)
 
             self.boxes.append(torch.Tensor(box))
             self.labels.append(torch.LongTensor(label))

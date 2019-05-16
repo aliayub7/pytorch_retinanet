@@ -19,6 +19,7 @@ class FocalLoss(nn.Module):
         alpha = 0.25
         gamma = 2
 
+        print("Y data: " + str(torch.max(y.data)))
         t = one_hot_embedding(y.data, 1 + config.num_classes)  # [N,21]
         t = t[:, 1:]  # exclude background
         t = t.cuda()  # [N,20]
