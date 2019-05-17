@@ -24,7 +24,7 @@ train_batch_size = 2
 test_batch_size = 1
 
 dataset_dir = os.path.join(
-    project_dir, 'data/bounding_boxes_{}_data'.format(project_prefix))
+    project_dir, 'data/bounding_boxes_{}'.format(project_prefix))
 
 label_map_filename = os.path.join(
     dataset_dir, 'food_{}_label_map.pbtxt'.format(project_prefix))
