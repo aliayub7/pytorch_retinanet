@@ -6,6 +6,7 @@ import math
 import torch
 
 from pytorch_retinanet.utils.pt_utils import meshgrid, box_iou, box_nms, change_box_order
+import sys
 
 
 class DataEncoder:
@@ -15,6 +16,8 @@ class DataEncoder:
         self.aspect_ratios = [1 / 2., 1 / 1., 2 / 1.]
         self.scale_ratios = [1., pow(2, 1 / 3.), pow(2, 2 / 3.)]
         self.anchor_wh = self._get_anchor_wh()
+
+        self.anchor_box_cache = {}
 
     def _get_anchor_wh(self):
         '''Compute anchor width and height for each feature map.
@@ -42,6 +45,11 @@ class DataEncoder:
           boxes: (list) anchor boxes for each feature map. Each of size [#anchors,4],
                         where #anchors = fmw * fmh * #anchors_per_cell
         '''
+
+        hash_key = input_size.numpy().tobytes()
+        if hash_key in self.anchor_box_cache:
+            return self.anchor_box_cache[hash_key]
+
         num_fms = len(self.anchor_areas)
         fm_sizes = [(input_size / pow(2., i + 3)).ceil()
                     for i in range(num_fms)]  # p3 -> p7 feature map sizes
@@ -60,7 +68,26 @@ class DataEncoder:
 
             box = torch.cat([xy, wh], 3)  # [x,y,w,h]
             boxes.append(box.view(-1, 4))
-        return torch.cat(boxes, 0)
+
+        new_anchor_boxes = change_box_order(torch.cat(boxes, 0), 'xywh2xyxy')
+        self.anchor_box_cache[hash_key] = new_anchor_boxes
+        return new_anchor_boxes
+
+    def encode_validate(self, boxes, labels, input_size):
+        if isinstance(input_size, int):
+            input_size = torch.Tensor([input_size, input_size])
+        else:
+            input_size = torch.Tensor(input_size)
+        anchor_boxes = self._get_anchor_boxes(input_size)
+
+        ious = box_iou(anchor_boxes, boxes)
+        max_ious, max_ids = ious.max(1)
+
+        cls_targets = labels[max_ids]
+
+        cls_targets[max_ious < 0.5] = 0
+
+        return cls_targets
 
     def encode(self, boxes, labels, input_size):
         '''Encode target bounding boxes and class labels.
@@ -82,9 +109,8 @@ class DataEncoder:
         else:
             input_size = torch.Tensor(input_size)
         anchor_boxes = self._get_anchor_boxes(input_size)
-        boxes = change_box_order(boxes, 'xyxy2xywh')
 
-        ious = box_iou(anchor_boxes, boxes, order='xywh')
+        ious = box_iou(anchor_boxes, boxes)
         max_ious, max_ids = ious.max(1)
         boxes = boxes[max_ids]
 
@@ -97,6 +123,7 @@ class DataEncoder:
         # ignore ious between [0.4,0.5]
         ignore = (max_ious > 0.4) & (max_ious < 0.5)
         cls_targets[ignore] = -1  # for now just mark ignored to -1
+
         return loc_targets, cls_targets
 
     def decode(self, loc_preds, cls_preds, input_size):
@@ -117,6 +144,7 @@ class DataEncoder:
         else:
             input_size = torch.Tensor(input_size)
         anchor_boxes = self._get_anchor_boxes(input_size)
+        anchor_boxes = change_box_order(anchor_boxes, 'xyxy2xywh')
 
         loc_xy = loc_preds[:, :2]
         loc_wh = loc_preds[:, 2:]

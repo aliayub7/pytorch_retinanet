@@ -9,6 +9,39 @@ import torch
 
 from PIL import Image, ImageDraw
 
+def resize_box(img, boxes, size, max_size=1000):
+    '''Resize the input box to the given size.
+
+    Args:
+      img: (PIL.Image) image to be resized, NOT LOADED
+      boxes: (tensor) object boxes, sized [#ojb,4].
+      size: (tuple or int)
+        - if is tuple, resize image to the size.
+        - if is int, resize the shorter side to the size while maintaining the aspect ratio.
+      max_size: (int) when size is int, limit the image longer size to max_size.
+                This is essential to limit the usage of GPU memory.
+    Returns:
+      img: (PIL.Image) resized image.
+      boxes: (tensor) resized boxes.
+    '''
+    w, h = img.size
+    if isinstance(size, int):
+        size_min = min(w, h)
+        size_max = max(w, h)
+        sw = sh = float(size) / size_min
+        if sw * size_max > max_size:
+            sw = sh = float(max_size) / size_max
+        ow = int(w * sw + 0.5)
+        oh = int(h * sh + 0.5)
+    else:
+        ow, oh = size
+        sw = float(ow) / w
+        sh = float(oh) / h
+
+    ratio = torch.Tensor([sw, sh, sw, sh])
+    resized_boxes = boxes * ratio
+    return resized_boxes
+
 
 def resize(img, boxes, size, max_size=1000):
     '''Resize the input PIL image to the given size.

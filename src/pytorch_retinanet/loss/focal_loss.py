@@ -36,6 +36,9 @@ class FocalLoss(nn.Module):
         pos = cls_targets > 0  # [N,#anchors]
         num_pos = pos.data.sum().type(torch.cuda.FloatTensor)
 
+        if num_pos.item() == 0:
+            print("BAD NUM POS!")
+
         mask = pos.unsqueeze(2).expand_as(loc_preds)       # [N,#anchors,4]
         m_loc_preds = loc_preds[mask].view(-1, 4)      # [#pos,4]
         m_loc_targets = loc_targets[mask].view(-1, 4)  # [#pos,4]

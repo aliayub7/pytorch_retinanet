@@ -3,7 +3,7 @@
 import os
 
 
-gpu_id = '0'
+gpu_id = '3'
 
 project_dir = os.path.split(os.getcwd())[0]
 project_prefix = 'spanet_all'

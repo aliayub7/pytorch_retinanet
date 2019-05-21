@@ -48,7 +48,7 @@ def run_train():
         input_size=config.img_res)
     trainloader = torch.utils.data.DataLoader(
         trainset, batch_size=config.train_batch_size,
-        shuffle=True, num_workers=8,
+        shuffle=True, num_workers=1,
         collate_fn=trainset.collate_fn)
 
     testset = ListDataset(
