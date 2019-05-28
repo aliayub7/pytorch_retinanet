@@ -16,7 +16,7 @@ source $(catkin locate)/devel/setup.bash
 ```
 
 ## Preparing a dataset
-Make a symlink or put your dataset for training in `data` directory. RetinaNet currently supports annotations in xml format. The image should be in `.png` format.
+Make a symlink or put your dataset for training in `data` directory. RetinaNet currently supports annotations in xml format. You can use `data/json2xml.py` to convert json label to xml format. Besides, the image should be in `.png` format. 
 
 For example, if your dataset name is `sample_data`, all the images should be in `data/sample_data/images`, and annotations should be saved in `data/sample_data/annotations/xmls`. Then, define a label map (id - name pairs) in `data/sample_data/sample_label_map.pbtxt`.
 
