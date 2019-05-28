@@ -6,7 +6,7 @@ import os
 gpu_id = '0'
 
 project_dir = os.path.split(os.getcwd())[0]
-project_prefix = 'sample'
+project_prefix = 'mpotato'
 
 available_models = {
     'fpn50': {'model_name': 'fpn50', 'conv_layer': 'resnet50'},
@@ -17,8 +17,8 @@ model_key = 'fpn101'
 model_name = available_models[model_key]['model_name']
 base_conv_layer = available_models[model_key]['conv_layer']
 
-img_res = 200
-num_classes = 3
+img_res = 100
+num_classes = 1
 
 train_batch_size = 2
 test_batch_size = 1

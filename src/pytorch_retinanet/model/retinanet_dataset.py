@@ -44,10 +44,10 @@ class ListDataset(data.Dataset):
             self.num_samples = len(lines)
             f.close()
 
-        isize = 5
+        isize = 6
         for line in lines:
             splited = line.strip().split()
-
+            
             this_img_filename = splited[0]
             self.img_filenames.append(this_img_filename)
 
