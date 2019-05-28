@@ -18,7 +18,7 @@ model_name = available_models[model_key]['model_name']
 base_conv_layer = available_models[model_key]['conv_layer']
 
 img_res = 600
-num_classes = 15
+num_classes = 3
 
 train_batch_size = 2
 test_batch_size = 1
