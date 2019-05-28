@@ -6,7 +6,7 @@ from __future__ import division
 import os
 import math
 import sys
-
+sys.path.append("/home/guohaz/retinanet/pytorch_retinanet/src")
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -66,17 +66,17 @@ def run_train():
     # Model
     net = RetinaNet()
 
-    if os.path.exists(config.checkpoint_filename):
-        print('Load saved checkpoint: {}'.format(config.checkpoint_filename))
-        checkpoint = torch.load(config.checkpoint_filename)
-        net.load_state_dict(checkpoint['net'])
-        best_loss = checkpoint['loss']
-        start_epoch = checkpoint['epoch']
-    else:
-        print('Load pretrained model: {}'.format(config.pretrained_filename))
-        if not os.path.exists(config.pretrained_filename):
-            import_pretrained_resnet()
-        net.load_state_dict(torch.load(config.pretrained_filename))
+    # if os.path.exists(config.checkpoint_filename):
+    #     print('Load saved checkpoint: {}'.format(config.checkpoint_filename))
+    #     checkpoint = torch.load(config.checkpoint_filename)
+    #     net.load_state_dict(checkpoint['net'])
+    #     best_loss = checkpoint['loss']
+    #     start_epoch = checkpoint['epoch']
+    # else:
+    #     print('Load pretrained model: {}'.format(config.pretrained_filename))
+    #     if not os.path.exists(config.pretrained_filename):
+    #         import_pretrained_resnet()
+    #     net.load_state_dict(torch.load(config.pretrained_filename))
 
     net = torch.nn.DataParallel(
         net, device_ids=range(torch.cuda.device_count()))

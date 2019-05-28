@@ -17,7 +17,7 @@ model_key = 'fpn101'
 model_name = available_models[model_key]['model_name']
 base_conv_layer = available_models[model_key]['conv_layer']
 
-img_res = 600
+img_res = 200
 num_classes = 3
 
 train_batch_size = 2
