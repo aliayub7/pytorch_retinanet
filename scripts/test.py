@@ -14,30 +14,20 @@ from pytorch_retinanet.utils.encoder import DataEncoder
 from pytorch_retinanet.config import config
 from pytorch_retinanet.utils.utils import load_label_map
 
-parser = argparse.ArgumentParser(description='Test Mashed Potato')
-parser.add_argument('--img_path', default='../data/mpotato_data/images/potato-white-trail-2_0002.png',
-                    help='test image path')
-args = parser.parse_args()
 
 os.environ['CUDA_VISIBLE_DEVICES'] = config.gpu_id
 
+def confusion(prediction, truth):
+    confusion_vector = prediction / truth
 
-def run_test():
-    print('Loading model..')
-    net = RetinaNet()
+    true_positives = torch.sum(confusion_vector == 1).item()
+    false_positives = torch.sum(confusion_vector == float('inf')).item()
+    true_negatives = torch.sum(torch.isnan(confusion_vector)).item()
+    false_negatives = torch.sum(confusion_vector == 0).item()
 
-    ckpt = torch.load(config.checkpoint_filename)
-    net.load_state_dict(ckpt['net'])
-    net.eval()
-    net.cuda()
+    return true_positives, false_positives, true_negatives, false_negatives
 
-    transform = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)) # why we need transform? which should be the correct number?
-    ])
-
-    print('Loading image..')
-    img = Image.open(args.img_path)
+def run_test(img, net, transform):
     w, h = img.size
 
     print('Predicting..')
@@ -73,11 +63,41 @@ def run_test():
                 item_tag,
                 font=fnt, fill=(255, 255, 255, 255))
 
-        img.save(
-            os.path.join('./rst',
-                         'rst.png'),
-            'PNG')
+    return img
+
+
+def main(path):
+    print('Loading model..')
+    net = RetinaNet()
+
+    ckpt = torch.load(config.checkpoint_filename)
+    net.load_state_dict(ckpt['net'])
+    net.eval()
+    net.cuda()
+
+    transform = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)) # why we need transform? which should be the correct number?
+    ])
+
+    image_filenames = sorted(os.listdir(path))
+    for img_name in image_filenames:
+        if img_name[-4:]=='.png':
+            print('Loading image: {}'.format(img_name))
+            img = Image.open(os.path.join(path, img_name))
+            ret_img = run_test(img, net, transform)
+            ret_img.save(
+                os.path.join('./rst',
+                            img_name + '.png'),
+                'PNG')
 
 
 if __name__ == '__main__':
-    run_test()
+    if len(sys.argv) != 2:
+        print('Please provide image dir')
+        os._exit(1)
+    path = sys.argv[1] # get test img dir as a command line argument
+    if not os.path.isdir(path):
+        print('Wrong dir path')
+    main(path)
+    
