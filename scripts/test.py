@@ -42,11 +42,15 @@ def run_test(img, net, transform):
             loc_preds.cpu().data.squeeze(),
             cls_preds.cpu().data.squeeze(),
             (w, h))
+    return boxes, labels, scores
 
-        label_map = load_label_map(config.label_map_filename)
 
-        draw = ImageDraw.Draw(img, 'RGBA')
-        fnt = ImageFont.truetype('Pillow/Tests/fonts/DejaVuSans.ttf', 11)
+def draw_result(img, img_name, boxes, labels, scores):
+    label_map = load_label_map(config.label_map_filename)
+
+    draw = ImageDraw.Draw(img, 'RGBA')
+    fnt = ImageFont.truetype('Pillow/Tests/fonts/DejaVuSans.ttf', 11)
+    if boxes is not None:
         for idx in range(len(boxes)):
             box = boxes[idx]
             label = labels[idx]
@@ -62,8 +66,7 @@ def run_test(img, net, transform):
                 list(box[:2]),
                 item_tag,
                 font=fnt, fill=(255, 255, 255, 255))
-
-    return img
+    img.save(os.path.join('./rst', img_name + '.png'), 'PNG')
 
 
 def main(path):
@@ -85,11 +88,8 @@ def main(path):
         if img_name[-4:]=='.png':
             print('Loading image: {}'.format(img_name))
             img = Image.open(os.path.join(path, img_name))
-            ret_img = run_test(img, net, transform)
-            ret_img.save(
-                os.path.join('./rst',
-                            img_name + '.png'),
-                'PNG')
+            boxes, labels, scores = run_test(img, net, transform)
+            draw_result(img, img_name, boxes, labels, scores)      
 
 
 if __name__ == '__main__':

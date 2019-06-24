@@ -44,7 +44,7 @@ class ListDataset(data.Dataset):
             self.num_samples = len(lines)
             f.close()
 
-        isize = 6
+        isize = 5
         for line in lines:
             splited = line.strip().split()
             

@@ -6,7 +6,7 @@ import os
 gpu_id = '0'
 
 project_dir = "/home/guohaz/retinanet/pytorch_retinanet/" #os.path.split(os.getcwd())[0]
-project_prefix = 'mpotato'
+project_prefix = 'food'
 
 available_models = {
     'fpn50': {'model_name': 'fpn50', 'conv_layer': 'resnet50'},
