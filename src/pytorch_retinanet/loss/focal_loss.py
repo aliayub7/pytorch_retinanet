@@ -19,6 +19,7 @@ class FocalLoss(nn.Module):
         alpha = 0.25
         gamma = 2
 
+        print("Y data: " + str(torch.max(y.data)))
         t = one_hot_embedding(y.data, 1 + config.num_classes)  # [N,21]
         t = t[:, 1:]  # exclude background
         t = t.cuda()  # [N,20]
@@ -28,13 +29,15 @@ class FocalLoss(nn.Module):
         # w = alpha if t > 0 else 1-alpha
         w = alpha * t + (1 - alpha) * (1 - t)
         w = w * (1 - pt).pow(gamma)
-        w = w.detach()  # for torch >= 1.0
         return F.binary_cross_entropy_with_logits(x, t, w, size_average=False)
 
     def forward(self, loc_preds, loc_targets, cls_preds, cls_targets):
         batch_size, num_boxes = cls_targets.size()
         pos = cls_targets > 0  # [N,#anchors]
         num_pos = pos.data.sum().type(torch.cuda.FloatTensor)
+
+        if num_pos.item() == 0:
+            print("BAD NUM POS!")
 
         mask = pos.unsqueeze(2).expand_as(loc_preds)       # [N,#anchors,4]
         m_loc_preds = loc_preds[mask].view(-1, 4)      # [#pos,4]
@@ -45,7 +48,12 @@ class FocalLoss(nn.Module):
         pos_neg = cls_targets > -1  # exclude ignored anchors
         mask = pos_neg.unsqueeze(2).expand_as(cls_preds)
         m_cls_preds = cls_preds[mask].view(-1, config.num_classes)
-        cls_loss = self.focal_loss(m_cls_preds, cls_targets[pos_neg])
+        m_cls_targets = cls_targets[pos_neg].unsqueeze(1).type(
+            torch.cuda.FloatTensor)
+
+        cls_loss = F.binary_cross_entropy_with_logits(
+            m_cls_preds, m_cls_targets, size_average=False)
+        # cls_loss = self.focal_loss(m_cls_preds, m_cls_targets)
 
         print('loc: {0:.03f} | cls: {1:.03f}'.format(
               loc_loss.data / num_pos,

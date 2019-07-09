@@ -11,7 +11,7 @@ import torch.utils.data as data
 from PIL import Image, ImageEnhance
 
 from pytorch_retinanet.utils.encoder import DataEncoder
-from pytorch_retinanet.utils.transform import resize, random_flip, random_crop, center_crop
+from pytorch_retinanet.utils.transform import resize, resize_box, random_flip, random_crop, center_crop
 from pytorch_retinanet.utils.utils import load_label_map
 from pytorch_retinanet.utils.pt_utils import one_hot_embedding
 from pytorch_retinanet.config import config
@@ -45,11 +45,13 @@ class ListDataset(data.Dataset):
             f.close()
 
         isize = 5
-        for line in lines:
+        print("Validating Dataset...")
+        for i, line in enumerate(lines):
+            if i % 100 == 0:
+                print("Processing %d / %d" % (i, self.num_samples))
             splited = line.strip().split()
-            
+
             this_img_filename = splited[0]
-            self.img_filenames.append(this_img_filename)
 
             num_boxes = (len(splited) - 1) // isize
             box = list()
@@ -63,8 +65,31 @@ class ListDataset(data.Dataset):
                 box.append([xmin, ymin, xmax, ymax])
                 label.append(cls)
 
+            if not self._validate_init(this_img_filename, box, label):
+                self.num_samples -= 1
+                continue
+
+            self.img_filenames.append(this_img_filename)
             self.boxes.append(torch.Tensor(box))
             self.labels.append(torch.LongTensor(label))
+
+        print("Finished! %d Samples Validated" % self.num_samples)
+
+    def _validate_init(self, img_filename, box, label):
+        h = w = self.input_size
+        img = Image.open(os.path.join(self.img_dir, img_filename))
+        boxes = resize_box(img, torch.Tensor(box), (w, h))
+        labels = torch.LongTensor(label)
+        this_cls = self.encoder.encode_validate(
+                boxes, labels, input_size=(w, h))
+        return (this_cls.max(0)[0] > 0)
+
+    def _validate_getitem(self, img, box, labels):
+        h = w = self.input_size
+        boxes = resize_box(img, box, (w, h))
+        this_cls = self.encoder.encode_validate(
+                boxes, labels, input_size=(w, h))
+        return (this_cls.max(0)[0] > 0)
 
     def __getitem__(self, idx):
         img_filename = self.img_filenames[idx]
@@ -78,17 +103,21 @@ class ListDataset(data.Dataset):
 
         # Data augmentation
         if self.train:
-            img, boxes = random_flip(img, boxes)
-            img, boxes = random_crop(img, boxes)
-            img, boxes = resize(img, boxes, (size, size))
-            if random.random() > 0.5:
-                img = ImageEnhance.Color(img).enhance(random.uniform(0, 1))
-                img = ImageEnhance.Brightness(img).enhance(random.uniform(0.5, 2))
-                img = ImageEnhance.Contrast(img).enhance(random.uniform(0.5, 1.5))
-                img = ImageEnhance.Sharpness(img).enhance(random.uniform(0.5, 1.5))
+            img_new, boxes_new = random_flip(img, boxes)
+            img_new, boxes_new = random_crop(img_new, boxes_new)
+            img_new, boxes_new = resize(img_new, boxes_new, (size, size))
+            if not self._validate_getitem(img_new, boxes_new, labels):
+                img, boxes = resize(img, boxes, (size, size))
+            else:
+                img = img_new
+                boxes = boxes_new
+                if random.random() > 0.5:
+                    img = ImageEnhance.Color(img).enhance(random.uniform(0, 1))
+                    img = ImageEnhance.Brightness(img).enhance(random.uniform(0.5, 2))
+                    img = ImageEnhance.Contrast(img).enhance(random.uniform(0.5, 1.5))
+                    img = ImageEnhance.Sharpness(img).enhance(random.uniform(0.5, 1.5))
         else:
             img, boxes = resize(img, boxes, (size, size))
-            # img, boxes = center_crop(img, boxes, (size, size))
 
         img = self.transform(img)
         return img, boxes, labels
