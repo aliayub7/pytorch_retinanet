@@ -20,8 +20,8 @@ base_conv_layer = available_models[model_key]['conv_layer']
 img_res = 600
 num_classes = 2
 
-train_batch_size = 2
-test_batch_size = 1
+train_batch_size = 5
+test_batch_size = 2
 
 dataset_dir = os.path.join(
     project_dir, 'data/{}_data'.format(project_prefix))
