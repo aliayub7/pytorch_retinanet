@@ -53,9 +53,9 @@ class FocalLoss(nn.Module):
         m_cls_targets = cls_targets[pos_neg].unsqueeze(1).type(
             torch.cuda.FloatTensor)
 
-         cls_loss = F.binary_cross_entropy_with_logits(
+        cls_loss = F.binary_cross_entropy_with_logits(
             m_cls_preds, m_cls_targets, size_average=False)
-            
+
         print('loc: {0:.03f} | cls: {1:.03f}'.format(
               loc_loss.data / num_pos,
               cls_loss.data / num_pos), end=' | ')
