@@ -44,7 +44,7 @@ class ListDataset(data.Dataset):
             self.num_samples = len(lines)
             f.close()
 
-        isize = 5
+        isize = 6
         print("Validating Dataset...")
         for i, line in enumerate(lines):
             if i % 100 == 0:

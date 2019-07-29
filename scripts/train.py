@@ -145,19 +145,19 @@ def run_train():
         # Save checkpoint
         global best_loss
         test_loss /= len(testloader)
-        # if test_loss < best_loss:
-        print('Save checkpoint: {}'.format(config.checkpoint_filename))
-        state = {
-            'net': net.module.state_dict(),
-            'loss': test_loss,
-            'epoch': epoch,
-        }
-        if not os.path.exists(os.path.dirname(config.checkpoint_filename)):
-            os.makedirs(os.path.dirname(config.checkpoint_filename))
-        torch.save(state, config.checkpoint_filename)
-            # best_loss = test_loss
+        if test_loss < best_loss:
+            print('Save checkpoint: {}'.format(config.checkpoint_filename))
+            state = {
+                'net': net.module.state_dict(),
+                'loss': test_loss,
+                'epoch': epoch,
+            }
+            if not os.path.exists(os.path.dirname(config.checkpoint_filename)):
+                os.makedirs(os.path.dirname(config.checkpoint_filename))
+            torch.save(state, config.checkpoint_filename)
+            best_loss = test_loss
 
-    for epoch in range(start_epoch, start_epoch + 150):
+    for epoch in range(start_epoch, start_epoch + 1000):
         train(epoch)
         test(epoch)
 
