@@ -49,8 +49,13 @@ class FocalLoss(nn.Module):
         pos_neg = cls_targets > -1  # exclude ignored anchors
         mask = pos_neg.unsqueeze(2).expand_as(cls_preds)
         m_cls_preds = cls_preds[mask].view(-1, config.num_classes)
-        cls_loss = self.focal_loss(m_cls_preds, cls_targets[pos_neg])
+        # cls_loss = self.focal_loss(m_cls_preds, cls_targets[pos_neg])
+        m_cls_targets = cls_targets[pos_neg].unsqueeze(1).type(
+            torch.cuda.FloatTensor)
 
+         cls_loss = F.binary_cross_entropy_with_logits(
+            m_cls_preds, m_cls_targets, size_average=False)
+            
         print('loc: {0:.03f} | cls: {1:.03f}'.format(
               loc_loss.data / num_pos,
               cls_loss.data / num_pos), end=' | ')

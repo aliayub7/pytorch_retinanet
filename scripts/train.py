@@ -83,8 +83,9 @@ def run_train():
     net.cuda()
 
     criterion = FocalLoss()
-    optimizer = optim.SGD(
-        net.parameters(), lr=1e-3, momentum=0.9, weight_decay=1e-4)
+    optimizer = optim.Adam(net.parameters(), lr=1e-4, weight_decay=1e-5)
+    # optimizer = optim.SGD(
+    #     net.parameters(), lr=1e-3, momentum=0.9, weight_decay=1e-4)
     # optimizer = optim.Adam(net.parameters(), lr=0.001, eps=1e-3, amsgrad=True)
 
     # Training
