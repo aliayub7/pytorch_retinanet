@@ -21,7 +21,7 @@ img_res = 600
 num_classes = 1
 
 train_batch_size = 2
-test_batch_size = 2
+test_batch_size = 1
 
 dataset_dir = os.path.join(
     project_dir, 'data/{}_data'.format(project_prefix))
