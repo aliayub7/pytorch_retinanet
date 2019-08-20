@@ -28,6 +28,7 @@ class FocalLoss(nn.Module):
         # w = alpha if t > 0 else 1-alpha
         w = alpha * t + (1 - alpha) * (1 - t)
         w = w * (1 - pt).pow(gamma)
+        w = w.detach()  # for torch >= 1.0
         return F.binary_cross_entropy_with_logits(x, t, w, size_average=False)
 
     def forward(self, loc_preds, loc_targets, cls_preds, cls_targets):
