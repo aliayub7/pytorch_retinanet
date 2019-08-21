@@ -153,8 +153,8 @@ class DataEncoder:
         wh = loc_wh.exp() * anchor_boxes[:, 2:]
         boxes = torch.cat([xy - wh / 2, xy + wh / 2], 1)  # [#anchors,4]
 
-        cls = cls_preds[:,None]
-        score, labels = cls.sigmoid().max(1)  # [#anchors,]
+        # cls_preds = cls_preds[:,None] # Uncomment if using bce loss with only 1 class
+        score, labels = cls_preds.sigmoid().max(1)  # [#anchors,]
         ids = score > CLS_THRESH
         ids = ids.nonzero().squeeze().view(-1)  # [#obj,]
 

@@ -6,7 +6,7 @@ import os
 gpu_id = '0'
 
 project_dir = "/home/guohaz/retinanet/pytorch_retinanet/" #os.path.split(os.getcwd())[0]
-project_prefix = 'mpotato'
+project_prefix = 'food'
 
 available_models = {
     'fpn50': {'model_name': 'fpn50', 'conv_layer': 'resnet50'},
@@ -18,10 +18,10 @@ model_name = available_models[model_key]['model_name']
 base_conv_layer = available_models[model_key]['conv_layer']
 
 img_res = 600
-num_classes = 1
+num_classes = 2 # for mashed potato label # 16 for individual food label # 2 for binary food label
 
-train_batch_size = 2
-test_batch_size = 1
+train_batch_size = 5
+test_batch_size = 2
 
 dataset_dir = os.path.join(
     project_dir, 'data/{}_data'.format(project_prefix))
