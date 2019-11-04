@@ -104,3 +104,4 @@ ENV/
 checkpoint/
 pretrained/
 data/mpotato_data/
+data/sample_data/
