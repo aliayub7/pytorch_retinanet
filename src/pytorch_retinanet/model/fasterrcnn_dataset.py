@@ -16,6 +16,11 @@ class ListDataset(retinanet_dataset.ListDataset):
         else:
             area = torch.tensor([])
 
+        # Perform checks on bounding boxes
+        for xmin, ymin, xmax, ymax in boxes:
+            assert (xmax - xmin > 5.0), 'xmax is less than xmin'
+            assert (ymax - ymin > 5.0), 'ymax is less than ymin'
+
         # Suppose all instances are not crowd
         iscrowd = torch.zeros((num_objs,), dtype=torch.int64)
 
