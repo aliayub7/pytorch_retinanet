@@ -24,12 +24,14 @@ class ListDataset(data.Dataset):
                  label_map_filename=config.label_map_filename,
                  train=True,
                  transform=None,
-                 input_size=config.img_res):
+                 input_size=config.img_res,
+                 do_augment=True):
 
         self.img_dir = img_dir
         self.train = train
         self.transform = transform
         self.input_size = input_size
+        self.do_augment = do_augment
 
         self.label_map = load_label_map(label_map_filename)
 
@@ -77,7 +79,7 @@ class ListDataset(data.Dataset):
         size = self.input_size
 
         # Data augmentation
-        if self.train:
+        if self.train and self.do_augment:
             img, boxes = random_flip(img, boxes)
             img, boxes = random_crop(img, boxes)
             img, boxes = resize(img, boxes, (size, size))
