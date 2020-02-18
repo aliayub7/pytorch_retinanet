@@ -5,6 +5,7 @@ from __future__ import division
 
 import os
 import math
+import shutil
 import sys
 import torch
 import torchvision.transforms as T
@@ -13,7 +14,7 @@ import warnings
 from pytorch_retinanet.model.fasterrcnn import FasterRCNN
 from pytorch_retinanet.model.fasterrcnn_dataset import ListDataset
 from pytorch_retinanet.config import config
-from pytorch_retinanet.utils.coco_engine import train_one_epoch
+from pytorch_retinanet.utils.coco_engine import train_one_epoch, evaluate, compute_loss
 
 
 os.environ['CUDA_VISIBLE_DEVICES'] = config.gpu_id
@@ -22,6 +23,21 @@ best_loss = float('inf')  # best test loss
 
 # TODO: move to config
 CHECKPOINT_PATH = 'checkpoint/fasterrcnn_resnet50_fpn_ckpt.pth'
+BEST_PATH = 'checkpoint/fasterrcnn_resnet50_fpn_best.pth'
+
+project_prefix = 'food_spanet_all'
+
+config.dataset_dir = '/mnt/hard_data/Data/foods/bite_selection_package/data/bounding_boxes_spanet_all'
+
+config.label_map_filename = os.path.join(
+    config.dataset_dir, '{}_label_map.pbtxt'.format(project_prefix))
+config.img_dir = os.path.join(config.dataset_dir, 'images')
+
+config.train_list_filename = os.path.join(
+    config.dataset_dir, '{}_ann_train.txt'.format(project_prefix))
+config.test_list_filename = os.path.join(
+    config.dataset_dir, '{}_ann_test.txt'.format(project_prefix))
+
 
 # TODO: output results to CSV file for analysis
 
@@ -41,7 +57,8 @@ def run_train():
         label_map_filename=config.label_map_filename,
         train=True,
         transform=transform,
-        input_size=config.img_res)
+        input_size=config.img_res,
+        do_augment=False)
     trainloader = torch.utils.data.DataLoader(
         trainset, batch_size=config.train_batch_size,
         shuffle=True, num_workers=8,
@@ -92,22 +109,26 @@ def run_train():
     # Test
     def test(epoch):
         print('\nTest')
+        print('Summary statistics:')
         evaluate(net, testloader, device=device)
 
+        test_loss = compute_loss(net, testloader, device)
+        print('Loss over test set: {:.4f}'.format(test_loss))
+
         # Save checkpoint
-        # TODO: need metric to select best checkpoint
+        print('Save checkpoint: {}'.format(CHECKPOINT_PATH))
+        state = {
+            'net': net.module.state_dict(),
+            'loss': test_loss,
+            'epoch': epoch,
+        }
+        if not os.path.exists(os.path.dirname(CHECKPOINT_PATH)):
+            os.makedirs(os.path.dirname(CHECKPOINT_PATH))
+        torch.save(state, CHECKPOINT_PATH)
+
         global best_loss
-        test_loss /= len(testloader)
         if test_loss < best_loss:
-            print('Save checkpoint: {}'.format(CHECKPOINT_PATH))
-            state = {
-                'net': net.module.state_dict(),
-                'loss': test_loss,
-                'epoch': epoch,
-            }
-            if not os.path.exists(os.path.dirname(CHECKPOINT_PATH)):
-                os.makedirs(os.path.dirname(CHECKPOINT_PATH))
-            torch.save(state, CHECKPOINT_PATH)
+            shutil.copy(CHECKPOINT_PATH, BEST_PATH)
             best_loss = test_loss
 
     for epoch in range(start_epoch, start_epoch + 1000):
