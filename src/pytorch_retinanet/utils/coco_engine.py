@@ -11,6 +11,7 @@ import torchvision.models.detection.mask_rcnn
 
 from pytorch_retinanet.utils.coco_eval import CocoEvaluator
 from pytorch_retinanet.utils import coco_utils
+from pytorch_retinanet.utils.utils import StdoutSilencer
 
 
 def train_one_epoch(model, optimizer, data_loader, device, epoch, print_freq):
@@ -34,7 +35,7 @@ def train_one_epoch(model, optimizer, data_loader, device, epoch, print_freq):
 
         losses = sum(loss for loss in loss_dict.values())
 
-        # reduce losses over all GPUs for logging purposes
+        # Reduce losses over all GPUs for logging purposes
         loss_dict_reduced = coco_utils.reduce_dict(loss_dict)
         losses_reduced = sum(loss for loss in loss_dict_reduced.values())
 
@@ -70,6 +71,37 @@ def _get_iou_types(model):
         iou_types.append("keypoints")
     return iou_types
 
+@torch.no_grad()
+def compute_loss(model, data_loader, device):
+    model.train()
+    metric_logger = coco_utils.MetricLogger(delimiter="  ")
+    header = 'Test loss:'
+
+    for images, targets in metric_logger.log_every(data_loader, 100, header):
+        images = list(image.to(device) for image in images)
+        targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
+
+        loss_dict = model(images, targets)
+
+        losses = sum(loss for loss in loss_dict.values())
+
+        # Reduce losses over all GPUs for logging purposes
+        loss_dict_reduced = coco_utils.reduce_dict(loss_dict)
+        losses_reduced = sum(loss for loss in loss_dict_reduced.values())
+
+        loss_value = losses_reduced.item()
+
+        if not math.isfinite(loss_value):
+            print("Loss is {}, something is wrong".format(loss_value))
+            print(loss_dict_reduced)
+            # TODO: Halt program more gracefully.
+            #    Indicate training termination in return variables
+            #    or expect the client to handle termination
+            sys.exit(1)
+
+        metric_logger.update(loss=losses_reduced, **loss_dict_reduced)
+
+    return metric_logger.loss.global_avg
 
 @torch.no_grad()
 def evaluate(model, data_loader, device):
@@ -98,7 +130,10 @@ def evaluate(model, data_loader, device):
 
         res = {target["image_id"].item(): output for target, output in zip(targets, outputs)}
         evaluator_time = time.time()
-        coco_evaluator.update(res)
+        with StdoutSilencer():
+            # This function prints a lot of unnecessary junk
+            # so we are silencing it.
+            coco_evaluator.update(res)
         evaluator_time = time.time() - evaluator_time
         metric_logger.update(model_time=model_time, evaluator_time=evaluator_time)
 
@@ -111,4 +146,5 @@ def evaluate(model, data_loader, device):
     coco_evaluator.accumulate()
     coco_evaluator.summarize()
     torch.set_num_threads(n_threads)
+
     return coco_evaluator
