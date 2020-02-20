@@ -181,10 +181,10 @@ def box_nms(bboxes, scores, threshold=0.5, mode='union'):
 
     keep = list()
     while order.numel() > 0:
-        if order.dim() == 0:	
-		i = order.item()
-	else:
-        	i = order[0]
+        if order.dim() == 0:
+            i = order.item()
+        else:
+            i = order[0]
         keep.append(i)
 
         if order.numel() == 1:
