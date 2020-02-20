@@ -2,6 +2,7 @@
 
 import os
 import random
+import collections
 import xml.etree.ElementTree as ET
 
 
@@ -30,54 +31,106 @@ def load_label_map(label_map_path):
 def generate_listdata(prefix):
     print('-- generate_listdata ---------------------------------\n')
 
-    label_map_path = './{}_label_map.pbtxt'.format(prefix)
+    label_map_path = '{}_label_map.pbtxt'.format(prefix)
     label_dict = load_label_map(label_map_path)
 
+    print("Label Dict:")
+    print(label_dict)
+
+    img_dir = './images'
     ann_dir = './annotations/xmls'
     listdataset_train_path = './{}_ann_train.txt'.format(prefix)
     listdataset_test_path = './{}_ann_test.txt'.format(prefix)
 
+    interm_map = {
+        'apple': 'apple',
+        'apricot': None,
+        'banana': 'banana',
+        'bell_pepper': 'bell_pepper',
+        'blackberry': None,
+        'broccoli': 'broccoli',
+        'cantaloupe': 'cantaloupe',
+        'carrot': 'carrot',
+        'celery': 'celery',
+        'cherry_tomato': 'cherry_tomato',
+        'egg': None,
+        'grape_purple': 'grape',
+        'grape_green': 'grape',
+        'melon': 'melon',
+        'strawberry': 'strawberry',
+        'red_grapes': 'grape',
+        'grapes': 'grape',
+        'cherry_tomatoes': 'cherry_tomato',
+        'cauliflower': 'cauliflower',
+        'honeydew': 'honeydew',
+        'kiwi': 'kiwi',
+        'cantalope': 'cantaloupe',
+        'carrots': 'carrot',
+        'celeries': 'celery',
+        'apples': 'apple',
+    }
+
     listdataset = list()
 
     xml_filenames = sorted(os.listdir(ann_dir))
+    bad_boxes = 0
+    total_boxes = 0
     for xidx, xml_filename in enumerate(xml_filenames):
         if not xml_filename.endswith('.xml'):
             continue
         xml_file_path = os.path.join(ann_dir, xml_filename)
-        print('[{}/{}] {}'.format(
-            xidx + 1, len(xml_filenames), xml_file_path))
 
-        this_ann_line = xml_filename[:-4] + '.jpg'
+        this_ann_line = xml_filename[:-4] + '.png'
+        if not os.path.exists(os.path.join(img_dir, this_ann_line)):
+            continue
 
         num_boxes = 0
-        bboxes = dict()
+        bboxes = collections.defaultdict(list)
         tree = ET.parse(xml_file_path)
         root = tree.getroot()
         for node in root:
             if node.tag == 'object':
+                # TODO: Add options for different label filters
                 obj_name = node.find('name').text
-                if obj_name.startswith('can'):
-                    obj_name = 'can'
+                obj_name = 'food'
+                if node.find('bndbox') is None:
+                    continue
                 xmin = int(node.find('bndbox').find('xmin').text)
                 ymin = int(node.find('bndbox').find('ymin').text)
                 xmax = int(node.find('bndbox').find('xmax').text)
                 ymax = int(node.find('bndbox').find('ymax').text)
-                if obj_name not in bboxes:
-                    bboxes[obj_name] = list()
-                bboxes[obj_name].append([xmin, ymin, xmax, ymax])
+                box = [xmin, ymin, xmax, ymax]
+
+                bad_x = xmin >= xmax
+                bad_y = ymin >= ymax
+                if bad_x or bad_y:
+                    print('Bad bounding box in "{}": {}'.format(
+                        xml_filename, box))
+                    if bad_x:
+                        print('    xmin >= xmax')
+                    if bad_y:
+                        print('    ymin >= ymax')
+                    bad_boxes += 1
+                else:
+                    bboxes[obj_name].append(box)
+                total_boxes += 1
 
         for obj_name in sorted(bboxes):
             bbox_list = bboxes[obj_name]
-            print(obj_name, bbox_list)
+            if obj_name is None:
+                continue
+
             for bidx, bbox in enumerate(bbox_list):
                 xmin, ymin, xmax, ymax = bbox
-
-                this_ann_line += ' {} {} {} {} {} {}'.format(
-                    xmin, ymin, xmax, ymax, label_dict[obj_name], bidx)
+                this_ann_line += ' {} {} {} {} {}'.format(
+                    xmin, ymin, xmax, ymax, label_dict[obj_name])
                 num_boxes += 1
 
         if num_boxes > 0:
             listdataset.append(this_ann_line)
+
+    good_boxes = total_boxes - bad_boxes
+    print('\n{}/{} bounding boxes used'.format(total_boxes, good_boxes))
 
     random.shuffle(listdataset)
 
@@ -91,7 +144,11 @@ def generate_listdata(prefix):
             f.write('{}\n'.format(listdataset[idx]))
         f.close()
 
-    print('-- generate_listdata finished ------------------------\n')
+    print('\nTraining set written to {} ({} images)'.format(listdataset_train_path, num_trainset))
+    num_testset = len(listdataset) - num_trainset
+    print('Testing set written to {} ({} images)'.format(listdataset_test_path, num_testset))
+
+    print('\n-- generate_listdata finished ------------------------\n')
 
 
 if __name__ == '__main__':
