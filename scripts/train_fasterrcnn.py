@@ -19,6 +19,8 @@ from pytorch_retinanet.utils.coco_engine import train_one_epoch, evaluate, compu
 
 os.environ['CUDA_VISIBLE_DEVICES'] = config.gpu_id
 
+PRINT_FREQ = 500
+
 best_loss = float('inf')  # best test loss
 
 # TODO: move to config
@@ -103,7 +105,7 @@ def run_train():
     # Training
     def train(epoch):
         print('\nEpoch: %d' % epoch)
-        train_one_epoch(net, optimizer, trainloader, device, epoch, print_freq=100)
+        train_one_epoch(net, optimizer, trainloader, device, epoch, print_freq=PRINT_FREQ)
         lr_scheduler.step()
 
     # Test
