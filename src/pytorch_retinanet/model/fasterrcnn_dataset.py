@@ -18,8 +18,11 @@ class ListDataset(retinanet_dataset.ListDataset):
 
         # Perform checks on bounding boxes
         for xmin, ymin, xmax, ymax in boxes:
-            assert (xmax - xmin > 5.0), 'xmax is less than xmin'
-            assert (ymax - ymin > 5.0), 'ymax is less than ymin'
+            # We add this margin to capture near-zero widths/heights.
+            xmsg = '{} (xmax) <= {} (xmin)'.format(xmax, xmin)
+            assert (xmax - xmin > 0.1), xmsg
+            ymsg = '{} (ymax) <= {} (ymin)'.format(ymax, ymin)
+            assert (ymax - ymin > 0.1), ymsg
 
         # Suppose all instances are not crowd
         iscrowd = torch.zeros((num_objs,), dtype=torch.int64)
