@@ -44,7 +44,6 @@ class ListDataset(data.Dataset):
         with open(list_filename) as f:
             lines = f.readlines()
             self.num_samples = len(lines)
-            f.close()
 
         isize = 5
         for line in lines:
@@ -70,7 +69,8 @@ class ListDataset(data.Dataset):
 
     def __getitem__(self, idx):
         img_filename = self.img_filenames[idx]
-        img = Image.open(os.path.join(self.img_dir, img_filename))
+        with Image.open(os.path.join(self.img_dir, img_filename)) as orig_img:
+            img = orig_img.copy()
         if img.mode != 'RGB':
             img = img.convert('RGB')
 

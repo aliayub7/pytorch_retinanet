@@ -9,6 +9,7 @@ import shutil
 import sys
 import torch
 import torchvision.transforms as T
+import torch.multiprocessing
 import warnings
 
 from pytorch_retinanet.model.fasterrcnn import FasterRCNN
@@ -16,6 +17,9 @@ from pytorch_retinanet.model.fasterrcnn_dataset import ListDataset
 from pytorch_retinanet.config import config
 from pytorch_retinanet.utils.coco_engine import train_one_epoch, evaluate, compute_loss
 
+# Prevents data loader from opening too many files.
+# See https://github.com/pytorch/pytorch/issues/11201 for a description of this issue.
+torch.multiprocessing.set_sharing_strategy('file_system')
 
 os.environ['CUDA_VISIBLE_DEVICES'] = config.gpu_id
 
