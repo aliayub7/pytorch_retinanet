@@ -44,10 +44,13 @@ config.train_list_filename = os.path.join(
 config.test_list_filename = os.path.join(
     config.dataset_dir, '{}_ann_test.txt'.format(project_prefix))
 
+best_loss = float('inf')
 
 # TODO: output results to CSV file for analysis
 
 def run_train():
+    global best_loss
+
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     if not torch.cuda.is_available():
         warnings.warn('CUDA not found!')
@@ -90,11 +93,17 @@ def run_train():
 
     # Load checkpoint
     if os.path.exists(CHECKPOINT_PATH):
-        print('Loading saved checkpoint: {}'.format(CHECKPOINT_PATH))
+        print('Loading checkpoint: {}'.format(CHECKPOINT_PATH))
         checkpoint = torch.load(CHECKPOINT_PATH)
         net.load_state_dict(checkpoint['net'])
-        best_loss = checkpoint['loss']
+        best_loss = min(best_loss, checkpoint['loss'])
         start_epoch = checkpoint['epoch']
+
+    # Get best loss
+    if os.path.exists(BEST_PATH):
+        print('Loading best checkpoint: {}'.format(BEST_PATH))
+        best_ckpt = torch.load(BEST_PATH)
+        best_loss = min(best_loss, best_ckpt['loss'])
 
     net = torch.nn.DataParallel(net, device_ids=range(torch.cuda.device_count()))
     net.to(device)
@@ -114,6 +123,8 @@ def run_train():
 
     # Test
     def test(epoch):
+        global best_loss
+
         print('\nTest')
         print('Summary statistics:')
         evaluate(net, testloader, device=device)
@@ -132,7 +143,6 @@ def run_train():
             os.makedirs(os.path.dirname(CHECKPOINT_PATH))
         torch.save(state, CHECKPOINT_PATH)
 
-        global best_loss
         if test_loss < best_loss:
             shutil.copy(CHECKPOINT_PATH, BEST_PATH)
             best_loss = test_loss
