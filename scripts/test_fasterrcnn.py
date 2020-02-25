@@ -41,7 +41,7 @@ config.test_list_filename = os.path.join(
     config.dataset_dir, '{}_ann_test.txt'.format(project_prefix))
 
 # For drawing boxes
-LINE_WIDTH = 2
+LINE_WIDTH = 1
 EDGE_COLOR = 'red'
 
 def on_press(event):
@@ -128,6 +128,7 @@ def run_test(do_eval):
         resized_img = torch.stack([trans(resized_img)])
         pred = net(resized_img)
         pred_boxes = pred[0]['boxes']
+        scores = pred[0]['scores']
         # TODO: Show scores and use IoU threshold
 
         # Resize boxes to fit original image
@@ -141,7 +142,7 @@ def run_test(do_eval):
 
         # Draw image and boxes
         ax.imshow(np.asarray(img))
-        for box in boxes:
+        for box, score in zip(boxes, scores):
             xmin, ymin, xmax, ymax = box
             bw = xmax - xmin
             bh = ymax - ymin
@@ -152,7 +153,19 @@ def run_test(do_eval):
                 facecolor='none'
             )
             ax.add_patch(rect)
+            score_txt = '{:.3f}'.format(score)
+            if ymin < 10:
+                x, y = xmin + 3, ymin + 11
+            else:
+                x, y = xmin, ymin - 1
+            ax.text(
+                x, y, score_txt,
+                fontsize=8, color=EDGE_COLOR
+            )
 
+        ax.get_xaxis().set_visible(False)
+        ax.get_yaxis().set_visible(False)
+        plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
         plt.show()
     print('Done')
 
