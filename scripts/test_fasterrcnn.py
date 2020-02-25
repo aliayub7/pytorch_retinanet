@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import numpy as np
 import random
+from time import time
 import torch
 import torchvision.transforms as T
 import torch.multiprocessing
@@ -127,7 +128,10 @@ def run_test(do_eval):
         # Predict boxes
         resized_img = img.resize((size, size), Image.BILINEAR)
         resized_img = torch.stack([trans(resized_img)])
+        begin = time()
         pred = net(resized_img)
+        elapse = time() - begin
+        print('        Boxes predicted in {:.3f}s'.format(elapse))
         pred_boxes = pred[0]['boxes']
         scores = pred[0]['scores']
         # TODO: Show scores and use IoU threshold
