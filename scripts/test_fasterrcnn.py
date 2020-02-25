@@ -105,6 +105,7 @@ def run_test(do_eval):
     # We do not load from the data loader since it resizes the image.
     print('\nShowing bounding box predictions on test set images')
     fnames = glob(os.path.join(config.img_dir, '*.png'))
+    random.shuffle(fnames)
     show_more = True
     print('Press <ENTER> for the next image, <ESC> to quit')
     net.eval()
