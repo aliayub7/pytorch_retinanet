@@ -36,5 +36,5 @@ Build and run the training script:
 catkin build pytorch_retinanet
 source $(catkin locate)/devel/setup.bash
 cd ./script
-./train.py
+./train_retinanet.py
 ```
