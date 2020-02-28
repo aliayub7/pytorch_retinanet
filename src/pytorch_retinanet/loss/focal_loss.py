@@ -8,7 +8,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from pytorch_retinanet.utils.pt_utils import one_hot_embedding
-from pytorch_retinanet.config import config
+
+# TODO: Focal loss is tied to RetinaNet's config. This should be disentangled.
+import pytorch_retinanet.config.retinanet as config
 
 
 class FocalLoss(nn.Module):

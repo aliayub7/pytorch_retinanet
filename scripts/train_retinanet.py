@@ -20,7 +20,7 @@ from pytorch_retinanet.loss.focal_loss import FocalLoss
 from pytorch_retinanet.model.retinanet import RetinaNet
 from pytorch_retinanet.model.retinanet_dataset import ListDataset
 from pytorch_retinanet.model.init_retinanet import import_pretrained_resnet
-from pytorch_retinanet.config import config
+import pytorch_retinanet.config.retinanet as config
 
 
 os.environ['CUDA_VISIBLE_DEVICES'] = config.gpu_id

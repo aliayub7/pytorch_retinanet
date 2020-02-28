@@ -10,7 +10,7 @@ import torchvision.models as models
 
 from pytorch_retinanet.model.fpn import FPN50, FPN101
 from pytorch_retinanet.model.retinanet import RetinaNet
-from pytorch_retinanet.config import config
+import pytorch_retinanet.config.retinanet as config
 
 
 def import_pretrained_resnet():

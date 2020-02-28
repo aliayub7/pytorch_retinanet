@@ -1,7 +1,6 @@
-''' general configurations'''
+''' RetinaNet configurations '''
 
 import os
-
 
 gpu_id = '0'
 
@@ -41,4 +40,3 @@ pretrained_filename = os.path.join(
 
 checkpoint_filename = os.path.join(
     project_dir, 'checkpoint/{}_ckpt.pth'.format(project_prefix))
-

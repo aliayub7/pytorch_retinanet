@@ -14,7 +14,7 @@ from pytorch_retinanet.utils.encoder import DataEncoder
 from pytorch_retinanet.utils.transform import resize, random_flip, random_crop, center_crop
 from pytorch_retinanet.utils.utils import load_label_map
 from pytorch_retinanet.utils.pt_utils import one_hot_embedding
-from pytorch_retinanet.config import config
+import pytorch_retinanet.config.retinanet as config
 
 
 class ListDataset(data.Dataset):

@@ -18,28 +18,16 @@ import torch.multiprocessing
 
 from pytorch_retinanet.model.fasterrcnn import FasterRCNN
 from pytorch_retinanet.model.fasterrcnn_dataset import ListDataset
-from pytorch_retinanet.config import config
 from pytorch_retinanet.utils.coco_engine import evaluate
+import pytorch_retinanet.config.fasterrcnn as config
 
 # Prevents data loader from opening too many files.
 # See https://github.com/pytorch/pytorch/issues/11201 for a description of this issue.
 torch.multiprocessing.set_sharing_strategy('file_system')
 
-os.environ['CUDA_VISIBLE_DEVICES'] = config.gpu_id
-
-# TODO: move to config
-BEST_PATH = 'checkpoint/fasterrcnn_resnet50_fpn_best.pth'
-
-project_prefix = 'food_spanet_all'
-
-config.dataset_dir = '/mnt/hard_data/Data/foods/bite_selection_package/data/bounding_boxes_spanet_all'
-
-config.label_map_filename = os.path.join(
-    config.dataset_dir, '{}_label_map.pbtxt'.format(project_prefix))
-config.img_dir = os.path.join(config.dataset_dir, 'images')
-
-config.test_list_filename = os.path.join(
-    config.dataset_dir, '{}_ann_test.txt'.format(project_prefix))
+# Use GPU device from config if none are specified
+if not 'CUDA_VISIBLE_DEVICES' in os.environ:
+    os.environ['CUDA_VISIBLE_DEVICES'] = config.gpu_id
 
 # For drawing boxes
 LINE_WIDTH = 1
@@ -85,13 +73,13 @@ def run_test(do_eval):
         collate_fn=testset.collate_fn)
 
     # Load best checkpoint
-    net = FasterRCNN(backbone_name='resnet50_fpn', pretrained=True)
-    if os.path.exists(BEST_PATH):
-        print('Loading best checkpoint: {}'.format(BEST_PATH))
-        ckpt = torch.load(BEST_PATH)
+    net = FasterRCNN(backbone_name=config.backbone_name, pretrained=True)
+    if os.path.exists(config.best_ckpt_filename):
+        print('Loading best checkpoint: {}'.format(config.best_ckpt_filename))
+        ckpt = torch.load(config.best_ckpt_filename)
         net.load_state_dict(ckpt['net'])
     else:
-        print('No best checkpoint found')
+        print('No best checkpoint found at {}'.format(config.best_ckpt_filename))
         exit(0)
 
     net = torch.nn.DataParallel(net, device_ids=range(torch.cuda.device_count()))

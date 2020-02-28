@@ -1,8 +1,23 @@
 import torch
 
 from pytorch_retinanet.model import retinanet_dataset
+import pytorch_retinanet.config.fasterrcnn as config
 
 class ListDataset(retinanet_dataset.ListDataset):
+    def __init__(self,
+                 img_dir=config.img_dir,
+                 list_filename=config.train_list_filename,
+                 label_map_filename=config.label_map_filename,
+                 input_size=config.img_res,
+                 **kwargs):
+        super().__init__(
+            img_dir=img_dir,
+            list_filename=list_filename,
+            label_map_filename=label_map_filename,
+            input_size=input_size,
+            **kwargs
+       )
+
     def __getitem__(self, idx):
         """Return a COCO-formated bounding box target"""
 
