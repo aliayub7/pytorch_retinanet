@@ -50,9 +50,31 @@ class CocoEvaluator(object):
             coco_eval.accumulate()
 
     def summarize(self):
+        all_metrics = {}
         for iou_type, coco_eval in self.coco_eval.items():
             print("IoU metric: {}".format(iou_type))
             coco_eval.summarize()
+            if iou_type == 'bbox':
+                stats = coco_eval.stats
+                labels = [
+                    'ap_iou5095_all',
+                    'ap_iou50_all',
+                    'ap_iou75_all',
+                    'ap_iou5095_small',
+                    'ap_iou5095_medium',
+                    'ap_iou5095_large',
+                    'ar_iou5095_maxdets1',
+                    'ar_iou5095_maxdets10',
+                    'ar_iou5095_maxdets100',
+                    'ar_iou5095_small',
+                    'ar_iou5095_medium',
+                    'ar_iou5095_large'
+                ]
+                metrics = {}
+                for stat, label in zip(stats, labels):
+                    metrics[label] = stat
+                all_metrics['bbox'] = metrics
+        return all_metrics
 
     def prepare(self, predictions, iou_type):
         if iou_type == "bbox":
