@@ -3,6 +3,7 @@
 from __future__ import print_function
 from __future__ import division
 
+import argparse
 import os
 import math
 import shutil
@@ -33,7 +34,7 @@ best_loss = float('inf')
 
 # TODO: output results to CSV file for analysis
 
-def run_train():
+def run_train(exclude=None):
     global best_loss
 
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
@@ -45,9 +46,23 @@ def run_train():
     print('Load ListDataset')
     transform = T.Compose([T.ToTensor()])
 
+    if exclude is None:
+        train_list_filename = config.train_list_filename
+        ckpt_filename = config.checkpoint_filename
+        best_ckpt_filename = config.best_ckpt_filename
+    else:
+        train_list_filename = config.get_train_list_filename_exclude(exclude)
+        ckpt_filename = config.get_checkpoint_filename_exclude(exclude)
+        best_ckpt_filename = config.get_best_ckpt_filename_exclude(exclude)
+
+    if not os.path.exists(train_list_filename):
+        print('Could not find dataset {}'.format(train_list_filename))
+        return
+
+    print('Using training dataset {}'.format(train_list_filename))
     trainset = ListDataset(
         img_dir=config.img_dir,
-        list_filename=config.train_list_filename,
+        list_filename=train_list_filename,
         label_map_filename=config.label_map_filename,
         train=True,
         transform=transform,
@@ -68,17 +83,17 @@ def run_train():
     # TODO: Load pretrained model if it exists
 
     # Load checkpoint
-    if os.path.exists(config.checkpoint_filename):
-        print('Loading checkpoint: {}'.format(config.checkpoint_filename))
-        checkpoint = torch.load(config.checkpoint_filename)
+    if os.path.exists(ckpt_filename):
+        print('Loading checkpoint: {}'.format(ckpt_filename))
+        checkpoint = torch.load(ckpt_filename)
         net.load_state_dict(checkpoint['net'])
         best_loss = min(best_loss, checkpoint['loss'])
         start_epoch = checkpoint['epoch']
 
     # Get best loss
-    if os.path.exists(config.best_ckpt_filename):
-        print('Loading best checkpoint: {}'.format(config.best_ckpt_filename))
-        best_ckpt = torch.load(config.best_ckpt_filename)
+    if os.path.exists(best_ckpt_filename):
+        print('Loading best checkpoint: {}'.format(best_ckpt_filename))
+        best_ckpt = torch.load(best_ckpt_filename)
         best_loss = min(best_loss, best_ckpt['loss'])
 
     net = torch.nn.DataParallel(net, device_ids=range(torch.cuda.device_count()))
@@ -128,18 +143,18 @@ def run_train():
         print('Loss over 10-fold validation set: {:.4f}'.format(val_loss))
 
         # Save checkpoint
-        print('Save checkpoint: {}'.format(config.checkpoint_filename))
+        print('Save checkpoint: {}'.format(ckpt_filename))
         state = {
             'net': net.module.state_dict(),
             'loss': val_loss,
             'epoch': epoch,
         }
-        if not os.path.exists(os.path.dirname(config.checkpoint_filename)):
-            os.makedirs(os.path.dirname(config.checkpoint_filename))
-        torch.save(state, config.checkpoint_filename)
+        if not os.path.exists(os.path.dirname(ckpt_filename)):
+            os.makedirs(os.path.dirname(ckpt_filename))
+        torch.save(state, ckpt_filename)
 
         if val_loss < best_loss:
-            shutil.copy(config.checkpoint_filename, config.best_ckpt_filename)
+            shutil.copy(ckpt_filename, best_ckpt_filename)
             best_loss = val_loss
 
     for epoch in range(start_epoch, start_epoch + 1000):
@@ -147,4 +162,14 @@ def run_train():
         validate(epoch)
 
 if __name__ == '__main__':
-    run_train()
+    parser = argparse.ArgumentParser(
+        description='Train a Faster R-CNN model')
+    parser.add_argument(
+        '--exclude', '-e', type=str, required=False,
+        help='exclude all images that include boxes with this label'
+    )
+    args = parser.parse_args()
+
+    if args.exclude is not None:
+        print('Excluding images with objects labeled {}'.format(args.exclude))
+    run_train(exclude=args.exclude)
