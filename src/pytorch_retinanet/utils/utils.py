@@ -41,3 +41,16 @@ class StdoutSilencer:
 
     def __exit__(self, type, value, traceback):
         sys.stdout = self.old_stdout
+
+class SubListDataset():
+    """Create a subset of a list dataset without loading every item"""
+
+    def __init__(self, dataset, indices):
+        self.dataset = dataset
+        self.indices = indices
+
+    def __getitem__(self, i):
+        return self.dataset[self.indices[i]]
+
+    def __len__(self):
+        return len(self.indices)

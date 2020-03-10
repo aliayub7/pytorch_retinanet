@@ -31,3 +31,5 @@ checkpoint_filename = os.path.join(
     project_dir, 'checkpoint/{}_ckpt.pth'.format(model_prefix))
 best_ckpt_filename = os.path.join(
     project_dir, 'checkpoint/{}_best.pth'.format(model_prefix))
+
+kfolds = 10

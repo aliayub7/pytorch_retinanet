@@ -6,6 +6,7 @@ from __future__ import division
 import os
 import math
 import shutil
+from sklearn.model_selection import KFold
 import sys
 import torch
 import torchvision.transforms as T
@@ -15,6 +16,7 @@ import warnings
 from pytorch_retinanet.model.fasterrcnn import FasterRCNN
 from pytorch_retinanet.model.fasterrcnn_dataset import ListDataset
 from pytorch_retinanet.utils.coco_engine import train_one_epoch, evaluate, compute_loss
+from pytorch_retinanet.utils.utils import SubListDataset
 import pytorch_retinanet.config.fasterrcnn as config
 
 # Prevents data loader from opening too many files.
@@ -50,23 +52,14 @@ def run_train():
         train=True,
         transform=transform,
         input_size=config.img_res,
-        do_augment=False)
-    trainloader = torch.utils.data.DataLoader(
-        trainset, batch_size=config.train_batch_size,
-        shuffle=True, num_workers=8,
-        collate_fn=trainset.collate_fn)
-
-    testset = ListDataset(
-        img_dir=config.img_dir,
-        list_filename=config.test_list_filename,
-        label_map_filename=config.label_map_filename,
-        train=False,
-        transform=transform,
-        input_size=config.img_res)
-    testloader = torch.utils.data.DataLoader(
-        testset, batch_size=config.test_batch_size,
-        shuffle=False, num_workers=8,
-        collate_fn=testset.collate_fn)
+        do_augment=False
+    )
+    kfold = KFold(config.kfolds, True)
+    train_splits = []
+    val_splits = []
+    for train_idxs, val_idxs in kfold.split(trainset):
+        train_splits.append(SubListDataset(trainset, train_idxs))
+        val_splits.append(SubListDataset(trainset, val_idxs))
 
     # Model
     net = FasterRCNN(backbone_name=config.backbone_name, pretrained=True)
@@ -101,38 +94,57 @@ def run_train():
     # Training
     def train(epoch):
         print('\nEpoch: %d' % epoch)
-        train_one_epoch(net, optimizer, trainloader, device, epoch, print_freq=PRINT_FREQ)
+        trainfold = train_splits[epoch % config.kfolds]
+        trainloader = torch.utils.data.DataLoader(
+            trainfold,
+            batch_size=config.train_batch_size,
+            shuffle=True,
+            num_workers=8,
+            collate_fn=trainset.collate_fn
+        )
+        train_one_epoch(
+            net, optimizer, trainloader, device, epoch,
+            print_freq=PRINT_FREQ
+        )
         lr_scheduler.step()
 
-    # Test
-    def test(epoch):
+    # Validation
+    def validate(epoch):
         global best_loss
 
-        print('\nTest')
+        print('\nValidation')
         print('Summary statistics:')
-        evaluate(net, testloader, device=device)
 
-        test_loss = compute_loss(net, testloader, device)
-        print('Loss over test set: {:.4f}'.format(test_loss))
+        valfold = val_splits[epoch % config.kfolds]
+        valloader = torch.utils.data.DataLoader(
+            valfold,
+            batch_size=config.train_batch_size,
+            shuffle=False,
+            num_workers=8,
+            collate_fn=trainset.collate_fn
+        )
+        evaluate(net, valloader, device=device)
+        val_loss = compute_loss(net, valloader, device)
+        print('Loss over 10-fold validation set: {:.4f}'.format(val_loss))
 
         # Save checkpoint
         print('Save checkpoint: {}'.format(config.checkpoint_filename))
         state = {
             'net': net.module.state_dict(),
-            'loss': test_loss,
+            'loss': val_loss,
             'epoch': epoch,
         }
         if not os.path.exists(os.path.dirname(config.checkpoint_filename)):
             os.makedirs(os.path.dirname(config.checkpoint_filename))
         torch.save(state, config.checkpoint_filename)
 
-        if test_loss < best_loss:
+        if val_loss < best_loss:
             shutil.copy(config.checkpoint_filename, config.best_ckpt_filename)
-            best_loss = test_loss
+            best_loss = val_loss
 
     for epoch in range(start_epoch, start_epoch + 1000):
         train(epoch)
-        test(epoch)
+        validate(epoch)
 
 if __name__ == '__main__':
     run_train()

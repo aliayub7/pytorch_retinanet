@@ -7,6 +7,7 @@ d = generate_distutils_setup(
     ],
     package_dir={'': 'src'},
     install_requires=[
+        'sklearn>=0.22.2',
         'torch>=0.4.1',
         'torchvision>=0.2.1'
     ]
