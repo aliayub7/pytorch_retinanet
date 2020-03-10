@@ -8,31 +8,15 @@ import collections
 import xml.etree.ElementTree as ET
 
 LABEL_MAP = {
-    'apple': 'apple',
-    'apricot': None,
-    'banana': 'banana',
-    'bell_pepper': 'bell_pepper',
-    'blackberry': None,
-    'broccoli': 'broccoli',
-    'cantaloupe': 'cantaloupe',
-    'carrot': 'carrot',
-    'celery': 'celery',
-    'cherry_tomato': 'cherry_tomato',
-    'egg': None,
     'grape_purple': 'grape',
     'grape_green': 'grape',
-    'melon': 'melon',
-    'strawberry': 'strawberry',
     'red_grapes': 'grape',
     'grapes': 'grape',
     'cherry_tomatoes': 'cherry_tomato',
-    'cauliflower': 'cauliflower',
-    'honeydew': 'honeydew',
-    'kiwi': 'kiwi',
     'cantalope': 'cantaloupe',
     'carrots': 'carrot',
     'celeries': 'celery',
-    'apples': 'apple',
+    'apples': 'apple'
 }
 
 def load_label_map(label_map_path):
