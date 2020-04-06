@@ -1,5 +1,7 @@
 # PyTorch-RetinaNet
-Train _RetinaNet_ with _Focal Loss_ in PyTorch.
+Provides training and testing of segmentaiton models _RetinaNet_ and _Faster R-CNN_. _RetinaNet_ is trained with _Focal Loss_.
+
+_TO-DO: Change the name of repository to reflect the inclusion of multiple segmentation models._
 
 Reference:
 [1] [Focal Loss for Dense Object Detection](https://arxiv.org/abs/1708.02002)
