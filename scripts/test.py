@@ -13,6 +13,7 @@ import torchvision.transforms as transforms
 
 from PIL import Image, ImageDraw, ImageFont
 
+from pytorch_retinanet.config import config
 from pytorch_retinanet.model.retinanet import RetinaNet
 from pytorch_retinanet.utils.encoder import DataEncoder
 
