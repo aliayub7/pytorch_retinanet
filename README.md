@@ -6,6 +6,8 @@ Reference:
 
 
 ## Installation
+Note that `load_checkpoint.sh` requires you to be on the UW CSE network (a VPN suffices).
+
 ```
 cd YOUR_CATKIN_WS/src
 git clone https://github.com/personalrobotics/pytorch_retinanet.git
